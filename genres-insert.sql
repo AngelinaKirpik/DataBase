@@ -4,7 +4,8 @@ VALUES
 ('Поп'),
 ('Электроника'),
 ('Хип-хоп'),
-('Джаз');
+('Джаз'),
+('Тестовый');
 
 INSERT INTO Performers(performer_name)
 VALUES
@@ -16,7 +17,8 @@ VALUES
 ('The Weeknd'),
 ('Sting'),
 ('Beyonce'),
-('Radiohead');
+('Radiohead'),
+('Test Performer');
 
 INSERT INTO Genres_Performers
 VALUES
@@ -36,7 +38,8 @@ VALUES
 (2, 8),
 (3, 8),
 (1, 9),
-(3, 9);
+(3, 9),
+(6, 10);
 
 INSERT INTO Albums(album_name, album_year)
 VALUES
@@ -47,7 +50,8 @@ VALUES
 ('25', 2015),
 ('After Hours', 2020),
 ('The Last Dance', 2019),
-('Renaissance', 2020);
+('Renaissance', 2020),
+('Test Album', 2024);
 
 INSERT INTO Performers_Albums
 VALUES
@@ -60,7 +64,8 @@ VALUES
 (1, 6),
 (7, 7),
 (8, 8),
-(9, 7);
+(9, 7),
+(10, 9);
 
 INSERT INTO Tracks(track_name, track_duration, album_id)
 VALUES
@@ -80,7 +85,18 @@ VALUES
 ('Мой путь', 210, 5),
 ('My Way', 225, 6),
 ('Scarlet', 198, 7),
-('Cuff It', 219, 8);
+('Cuff It', 219, 8),
+('my own', 200, 9),
+('own my', 200, 9),
+('my', 200, 9),
+('oh my god', 200, 9),
+('myself', 200, 9),
+('by myself', 200, 9),
+('bemy self', 200, 9),
+('myself by', 200, 9),
+('by myself by', 200, 9),
+('beemy', 200, 9),
+('premyne', 200, 9);
 
 INSERT INTO Compilations(compilation_name, compilation_year)
 VALUES

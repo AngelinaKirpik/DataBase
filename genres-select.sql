@@ -17,7 +17,7 @@ WHERE performer_name NOT LIKE '% %';
 
 -- Название треков, которые содержат слово «мой» или «my».
 SELECT track_name FROM Tracks
-WHERE LOWER(track_name) LIKE '%my%' OR LOWER(track_name) LIKE '%мой%';
+WHERE string_to_array(LOWER(track_name), ' ') && ARRAY['my', 'мой'];
 
 -- ЗАДАНИЕ 3
 -- Количество исполнителей в каждом жанре.
