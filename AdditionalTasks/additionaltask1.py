@@ -6,7 +6,9 @@ conn = psycopg2.connect(database = 'additional_task_1', user='postgres', passwor
 def creation_db(conn):
     with conn.cursor() as cur:
         cur.execute("DROP TABLE IF EXISTS phones CASCADE")
+        cur.execute("DROP TABLE IF EXISTS orders CASCADE")
         cur.execute("DROP TABLE IF EXISTS clients CASCADE")
+
         cur.execute("""
                 CREATE TABLE IF NOT EXISTS clients(
                 client_id SERIAL PRIMARY KEY,
@@ -19,6 +21,14 @@ def creation_db(conn):
                 phone_id SERIAL PRIMARY KEY,
                 phone VARCHAR(20) CHECK (phone ~ '^[\+\d][\d\-\s\(\)]{8,20}$'),
                 client_id INTEGER NOT NULL REFERENCES clients(client_id) ON DELETE CASCADE);      
+        """)
+        cur.execute("""
+                        CREATE TABLE IF NOT EXISTS orders(
+                        order_id SERIAL PRIMARY KEY,
+                        order_name VARCHAR(20) NOT NULL,
+                        order_date DATE NOT NULL,
+                        total_amount NUMERIC(10, 2) NOT NULL,
+                        client_id INTEGER NOT NULL REFERENCES clients(client_id) ON DELETE CASCADE);      
         """)
         conn.commit()
 
@@ -33,6 +43,7 @@ def add_client(conn, client_first_name, client_last_name, client_email):
         conn.commit()
         print(f'Клиент добавлен с ID {client_id}')
         return client_id
+
 def add_phone(conn, client_id, client_phone):
     with conn.cursor() as cur:
         cur.execute("""
@@ -115,13 +126,42 @@ def find_clients(conn, client_first_name=None, client_last_name=None, client_ema
         for row in result:
             print(f'ID: {row[0]}, Имя: {row[1]}, Фамилия: {row[2]}, Email: {row[3]}, Телефон(ы): {row[4] or "нет"} ')
         return result
+
+def add_order(conn, client_id, order_name, order_date, order_total_amount):
+    with conn.cursor() as cur:
+        cur.execute("""
+                INSERT INTO orders(order_name, order_date, total_amount, client_id)
+                VALUES (%s, %s, %s, %s)
+                RETURNING order_id;          
+               """, (order_name, order_date, order_total_amount, client_id))
+        order_id = cur.fetchone()[0]
+        conn.commit()
+        print(f'Заказ "{order_name}" с ID {order_id} добавлен клиенту с ID {client_id}')
+        return order_id
+
+def get_client_orders(conn, client_id):
+    with conn.cursor() as cur:
+        cur.execute("""
+                SELECT order_id, order_name, order_date, total_amount FROM orders
+                WHERE client_id = %s
+                """, (client_id, ))
+        orders = cur.fetchall()
+
+        if not orders:
+            print(f'У клиента {client_id} нет заказов')
+            return []
+        for order in orders:
+            print(f'Заказ №{order[0]}:  {order[1]} оформленный {order[2]} на сумму {order[3]}')
+        return orders
+
+
 # Проверка работоспособности
-with conn.cursor() as cur:
-    cur.execute("TRUNCATE TABLE phones, clients RESTART IDENTITY CASCADE")
-    conn.commit()
 print("===========Тест==========")
 # Создание базы данных
 creation_db(conn)
+with conn.cursor() as cur:
+    cur.execute("TRUNCATE TABLE phones, orders, clients RESTART IDENTITY CASCADE")
+    conn.commit()
 #Добавление клиентов
 print("==========Добавление клиентов==========")
 client1 = add_client(conn, "Иван", "Иванов", "ivan@mail.ru")
@@ -158,6 +198,19 @@ find_clients(conn, client_phone='+7-999-222-22-22')
 print("==========Поиск клиента по почте==========")
 find_clients(conn, client_email='pavel@mail.ru')
 print("=" * 50)
+# Добавление заказов
+print("==========Добавление заказов==========")
+add_order(conn, client1, 'Ноутбук', '2024-01-15', 50000.00)
+add_order(conn, client1, 'Мышь', '2024-01-15', 1500.00)
+add_order(conn, client3, 'Клавиатура', '2024-01-15', 3000.00)
+print("=" * 50)
+# Заказы клиентов
+print("==========Заказы клиента client1==========")
+get_client_orders(conn, client1)
+print("==========Заказы клиента client3==========")
+get_client_orders(conn, client3)
+print("==========Заказы не существующего клиента==========")
+get_client_orders(conn, 999)
 # Удаление телефонов
 print("==========Удаление телефонов==========")
 with conn.cursor() as cur:
